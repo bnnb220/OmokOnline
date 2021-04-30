@@ -9,6 +9,8 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 {
     public static BoardCtrl instance;
 
+    public bool isGameOver;
+
     public GameObject block;
 
     public Transform boardPanelTr;
@@ -75,6 +77,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     bool HorizontalCheck()
     {
+        if(isGameOver) return true;
         pieceIds = new int[] {-1,-1,-1,-1,-1};
         int numOfPiece = 0;
 
@@ -95,6 +98,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                 
                 if(numOfPiece >= 5)
                 {
+                    isGameOver = true;
                     return true;
                 }
             }
@@ -104,6 +108,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     bool VerticalCheck()
     {
+        if(isGameOver) return true;
         pieceIds = new int[] {-1,-1,-1,-1,-1};
         int numOfPiece = 0;
 
@@ -113,7 +118,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 if(_gameBoard[j][i] == _colorNum)
                 {
-                    pieceIds[numOfPiece] = GetPos(j, i);
+                    pieceIds[numOfPiece] = GetPos(i, j);
                     numOfPiece++;
                 }
                 else
@@ -124,6 +129,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                 
                 if(numOfPiece >= 5)
                 {
+                    isGameOver = true;
                     return true;
                 }
             }
@@ -134,6 +140,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     bool LRSlashCheck()
     {
+        if(isGameOver) return true;
         pieceIds = new int[] {-1,-1,-1,-1,-1};
         int numOfPiece = 0;
         int offset = 19;
@@ -144,7 +151,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 if(_gameBoard[i + j][j] == _colorNum)
                 {
-                    pieceIds[numOfPiece] = GetPos(j, i);
+                    pieceIds[numOfPiece] = GetPos(j, i + j);
                     numOfPiece++;
                 }
                 else
@@ -155,6 +162,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                 
                 if(numOfPiece >= 5)
                 {
+                    isGameOver = true;
                     return true;
                 }
             }
@@ -171,7 +179,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 if(_gameBoard[j][i + j] == _colorNum)
                 {
-                    pieceIds[numOfPiece] = GetPos(j, i);
+                    pieceIds[numOfPiece] = GetPos(i + j, j);
                     numOfPiece++;
                 }
                 else
@@ -182,6 +190,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                 
                 if(numOfPiece >= 5)
                 {
+                    isGameOver = true;
                     return true;
                 }
             }
@@ -193,6 +202,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     bool RLSlashCheck()
     {
+        if(isGameOver) return true;
         pieceIds = new int[] {-1,-1,-1,-1,-1};
         int numOfPiece = 0;
         int offset = 19;
@@ -203,7 +213,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 if(_gameBoard[i - j][j] == _colorNum)
                 {
-                    pieceIds[numOfPiece] = GetPos(j, i);
+                    pieceIds[numOfPiece] = GetPos(j, i - j);
                     numOfPiece++;
                 }
                 else
@@ -214,6 +224,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                 
                 if(numOfPiece >= 5)
                 {
+                    isGameOver = true;
                     return true;
                 }
             }
@@ -231,7 +242,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 if(_gameBoard[j][i++] == _colorNum)
                 {
-                    pieceIds[numOfPiece] = GetPos(j, i);
+                    pieceIds[numOfPiece] = GetPos(i, j);
                     numOfPiece++;
                 }
                 else
@@ -242,6 +253,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                 
                 if(numOfPiece >= 5)
                 {
+                    isGameOver = true;
                     return true;
                 }
             }
@@ -262,14 +274,16 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     void WinEvent()
     {
         GameManager.instance.isWin = true;
-        ShowWinPieces((GameManager.instance.myColor));
+
+        pv.RPC("ShowWinPieces", RpcTarget.All, GameManager.instance.myColor, pieceIds);
     }
 
-    void ShowWinPieces(string color)
+    [PunRPC]
+    void ShowWinPieces(string color, int[] ids)
     {
-        for (int i = 0; i < pieceIds.Length; i++)
+        for (int i = 0; i < ids.Length; i++)
         {
-            blocks[pieceIds[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
+            blocks[ids[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
         }
     }
 }
