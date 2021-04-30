@@ -11,6 +11,9 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private bool enable = true;
     private Image image;
     private PhotonView pv;
+
+    public int id;
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         if(enable)
@@ -37,11 +40,10 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     
     void OnBlockClick()
     {
-        pv.RPC("PutPiece", RpcTarget.All);
+        BoardCtrl.instance.BlockClicked(this);
     }
 
-    [PunRPC]
-    void PutPiece()
+    public void PutPiece()
     {
         Sprite img = Resources.Load<Sprite>(GameManager.instance.myColor);
 

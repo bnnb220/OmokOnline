@@ -11,12 +11,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     public bool isMyTurn;
     public string myColor;
 
-    /*
-    -2 : Empty but can't put.
-    -1 : Empty.
-     0 : White.
-     1 : Black.
-    */
     public int[,] gameBoard; 
 
     private PhotonView pv;
@@ -30,11 +24,11 @@ public class GameManager : MonoBehaviourPunCallbacks
     // Start is called before the first frame update
     void Start()
     {
-        CreateBoard();
+        CreateBoardArray();
         ColorSetting();
     }
 
-    void CreateBoard()
+    void CreateBoardArray()
     {
         gameBoard = new int[19,19];
 
@@ -60,6 +54,5 @@ public class GameManager : MonoBehaviourPunCallbacks
             isMyTurn = false;
         }
     }
-
 
 }
