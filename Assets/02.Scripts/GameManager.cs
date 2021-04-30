@@ -10,11 +10,13 @@ public class GameManager : MonoBehaviourPunCallbacks
     public static GameManager instance;
     public bool isMyTurn;
     public string myColor;
+    public string oppoColor;
 
     public int[,] gameBoard; 
 
     private PhotonView pv;
 
+    public GameObject[] blocks;
 
     void Awake()
     {
@@ -46,11 +48,13 @@ public class GameManager : MonoBehaviourPunCallbacks
         if(PhotonNetwork.IsMasterClient)
         {
             myColor = "Black";
+            oppoColor = "White";
             isMyTurn = true;
         }
         else
         {
             myColor = "White";
+            oppoColor = "Black";
             isMyTurn = false;
         }
     }

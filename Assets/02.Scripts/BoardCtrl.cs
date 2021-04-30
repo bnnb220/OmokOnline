@@ -9,10 +9,14 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     public static BoardCtrl instance;
 
     public GameObject block;
+
+    public Transform boardPanelTr;
     
     private int[,] _gameBoard;
 
     private PhotonView pv;
+
+    private GameObject[] blocks = new GameObject[361];
 
     // Start is called before the first frame update
     void Awake()
@@ -23,6 +27,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     void Start()
     {
+        BoardSetting();
     }
 
     // Update is called once per frame
@@ -39,24 +44,26 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     }
 
 
-    // void BoardSetting()
-    // {
-    //     GameObject newBlock;
-    //     for (int i = 0; i < 361; i++)
-    //     {
-    //         newBlock = Instantiate(block, Vector3.zero, Quaternion.identity, boardPanelTr);
-    //         newBlock.GetComponent<BlockCtrl>().id = i;
-    //     }
-    // }
-
-    public void BlockClicked(BlockCtrl block)
+    void BoardSetting()
     {
-        pv.RPC("PutPiece", RpcTarget.All, block);
+        GameObject newBlock;
+        for (int i = 0; i < 361; i++)
+        {
+            newBlock = Instantiate(block, Vector3.zero, Quaternion.identity, boardPanelTr);
+            newBlock.GetComponent<BlockCtrl>().id = i;
+
+            blocks[i] = newBlock;
+        }
+    }
+
+    public void BlockClicked(int blockId)
+    {
+        pv.RPC("PutPiece", RpcTarget.Others, blockId);
     }
 
     [PunRPC]
-    void PutPiece(BlockCtrl block)
+    void PutPiece(int blockId)
     {
-        block.PutPiece();
+        blocks[blockId].GetComponent<BlockCtrl>().PutPiece(GameManager.instance.oppoColor, false);
     }
 }

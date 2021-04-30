@@ -40,17 +40,30 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     
     void OnBlockClick()
     {
-        BoardCtrl.instance.BlockClicked(this);
+        if(GameManager.instance.isMyTurn)
+        {   
+            PutPiece(GameManager.instance.myColor, true);
+            BoardCtrl.instance.BlockClicked(id);
+        }
     }
 
-    public void PutPiece()
+    public void PutPiece(string color, bool isCalledFromMine)
     {
-        Sprite img = Resources.Load<Sprite>(GameManager.instance.myColor);
+        Sprite img = Resources.Load<Sprite>(color);
 
         image.sprite = img;
 
         image.color = Color.white;
 
         enable = false;
+
+        if(isCalledFromMine)
+        {
+            GameManager.instance.isMyTurn = false;
+        }
+        else
+        {
+            GameManager.instance.isMyTurn = true;
+        }
     }
 }
