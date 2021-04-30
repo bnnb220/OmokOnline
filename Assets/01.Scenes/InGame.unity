@@ -1021,6 +1021,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isMyTurn: 0
   myColor: 
+  oppoColor: 
+  colorNum: 0
   blocks: []
 --- !u!4 &2073314063
 Transform:

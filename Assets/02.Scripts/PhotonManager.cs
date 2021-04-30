@@ -20,10 +20,6 @@ public class PhotonManager : MonoBehaviourPunCallbacks
         PhotonNetwork.ConnectUsingSettings();
     }
     // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
     public override void OnConnectedToMaster()
     {

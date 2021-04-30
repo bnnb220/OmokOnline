@@ -8,7 +8,6 @@ using Photon.Realtime;
 
 public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    private bool enable = true;
     private Image image;
     private PhotonView pv;
 
@@ -16,7 +15,7 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if(enable)
+        if(GameManager.instance.isMyTurn)
         {
             image.color = new Color(image.color.r, image.color.g, image.color.b, 0.5f);
         }
@@ -24,7 +23,7 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public void OnPointerExit(PointerEventData eventData)
     {   
-        if(enable)
+        if(GameManager.instance.isMyTurn)
         {
             image.color = new Color(image.color.r, image.color.g, image.color.b, 0.0f);
         }
@@ -55,8 +54,6 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
         image.color = Color.white;
 
-        enable = false;
-
         if(isCalledFromMine)
         {
             GameManager.instance.isMyTurn = false;
@@ -65,5 +62,30 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             GameManager.instance.isMyTurn = true;
         }
+        BoardArrayUpdate(color);
+
+        GetComponent<BlockCtrl>().enabled = false;
+        GetComponent<Button>().enabled = false;
+    }
+
+    void BoardArrayUpdate(string color)
+    {
+        int colorNum = -1;
+        if(color == "White")
+        {
+            colorNum = 0;
+        }
+        else if(color == "Black")
+        {
+            colorNum = 1;
+        }
+        else
+        {
+            Debug.Log("ERROR");
+        }
+        int x = id % 19;
+        int y = (int)Mathf.Floor(id / 19);
+
+        GameManager.instance.gameBoard[y][x] = colorNum;
     }
 }
