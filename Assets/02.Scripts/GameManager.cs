@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
+using Photon.Realtime;
+using TMPro;
 
-
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviourPunCallbacks
 {
-    
     public static GameManager instance;
     public bool isMyTurn;
-    public Color myColor;
+    public string myColor;
 
     /*
     -2 : Empty but can't put.
@@ -17,9 +17,7 @@ public class GameManager : MonoBehaviour
      0 : White.
      1 : Black.
     */
-    public int[][] gameBoard; 
-
-    public enum Color{White, Black}
+    public int[,] gameBoard; 
 
     private PhotonView pv;
 
@@ -27,24 +25,41 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         instance = this;
-        pv = GetComponent<PhotonView>();
+        pv = photonView;
     }
     // Start is called before the first frame update
     void Start()
     {
-        if(PhotonNetwork.IsMasterClient)
+        CreateBoard();
+        ColorSetting();
+    }
+
+    void CreateBoard()
+    {
+        gameBoard = new int[19,19];
+
+        for (int i = 0; i < 19; i++)
         {
-            myColor = Color.Black;
-        }
-        else
-        {
-            myColor = Color.White;
+            for (int j = 0; j < 19; j++)
+            {
+                gameBoard[i, j] = -1;
+            }
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    void ColorSetting()
     {
-        
+        if(PhotonNetwork.IsMasterClient)
+        {
+            myColor = "Black";
+            isMyTurn = true;
+        }
+        else
+        {
+            myColor = "White";
+            isMyTurn = false;
+        }
     }
+
+
 }

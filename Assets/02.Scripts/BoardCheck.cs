@@ -11,7 +11,7 @@ public class BoardCheck : MonoBehaviour
      0 : White.
      1 : Black.
     */
-    private int[][] _gameBoard;
+    private int[,] _gameBoard;
 
     // Start is called before the first frame update
     void Start()
