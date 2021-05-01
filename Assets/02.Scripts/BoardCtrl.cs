@@ -60,18 +60,37 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         blocks[blockId].GetComponent<BlockCtrl>().PutPiece(GameManager.instance.oppoColor, false);
     }
 
-#region BOARD_CHECK
+    void WinEvent()
+    {
+        GameManager.instance.isWin = true;
+
+        pv.RPC("ShowWinPieces", RpcTarget.All, GameManager.instance.myColor, pieceIds);
+    }
+
+    [PunRPC]
+    void ShowWinPieces(string color, int[] ids)
+    {
+        for (int i = 0; i < ids.Length; i++)
+        {
+            blocks[ids[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
+        }
+    }
+
+#region GAME_END_CHECK
 
     void CurrBoardCheck()
     {
         GameManager.instance.PrintBoardArray();
         _gameBoard = GameManager.instance.gameBoard;
         _colorNum = GameManager.instance.colorNum;
-        // board check event (only check my color piece) 가로 세로 RLSlash LRSlash
 
-        if(HorizontalCheck() || VerticalCheck() || LRSlashCheck() || RLSlashCheck())
+        if(HorizontalCheck() || VerticalCheck() || LSlashCheck() || RSlashCheck())
         {
             WinEvent();
+        }
+        else
+        {
+            ImpossiblePositionCheck();
         }
     }
 
@@ -138,7 +157,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         return false;  
     }
 
-    bool LRSlashCheck()
+    bool LSlashCheck()
     {
         if(isGameOver) return true;
         pieceIds = new int[] {-1,-1,-1,-1,-1};
@@ -200,7 +219,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         return false; 
     }
 
-    bool RLSlashCheck()
+    bool RSlashCheck()
     {
         if(isGameOver) return true;
         pieceIds = new int[] {-1,-1,-1,-1,-1};
@@ -271,19 +290,180 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     }
 #endregion
 
-    void WinEvent()
-    {
-        GameManager.instance.isWin = true;
 
-        pv.RPC("ShowWinPieces", RpcTarget.All, GameManager.instance.myColor, pieceIds);
-    }
+#region 33_44_CHECK
 
-    [PunRPC]
-    void ShowWinPieces(string color, int[] ids)
+    // L, RU, U, LU, L, LD, D, RD
+    private int[] dx = new int[8] {1, 1, 0,-1,-1,-1,0,1}; 
+    private int[] dy = new int[8] {0,-1,-1,-1, 0, 1,1,1};
+
+    // [3X3] : OX@XO, O@XXO, OXXO@O, OXO@XO
+    private int[] dStart_33 = new int[4] {-2, -1, -4, -3};
+    private int[] dEnd_33 = new int[4] {2, 3, 1, 2};
+
+    // [4X4] : OXXX@, OX@XX, OXX@X, XXXO@, XXO@X
+    private int[] dStart_44 = new int[5] {-4, -2, -3, -4, -3};
+    private int[] dEnd_44 = new int[5] {0, 2, 1, 0, 1};
+
+    private string[] pieceLine_33 = new string[4] {"EBEBE", "EEBBE", "EBBEEE", "EBEEBE"};
+
+    private string[] pieceLine_44 = new string[5] {"EBBBE", "EBEBB", "EBBEB", "BBBEE", "BBEEB"};
+
+    private int[][] boardCache33 = new int[19][];
+
+    private int[][] boardCache44 = new int[19][];
+
+    void ResetBoardCache()
     {
-        for (int i = 0; i < ids.Length; i++)
+        boardCache33 = new int[19][];
+        boardCache44 = new int[19][];
+
+        for (int i = 0; i < 19; i++)
         {
-            blocks[ids[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
+            boardCache33[i] = new int[19];
+            boardCache44[i] = new int[19];
         }
     }
+
+    void ImpossiblePositionCheck()
+    {
+        ResetBoardCache();
+
+        for (int y = 0; y < 19; y++)
+        {
+            for (int x = 0; x < 19; x++)
+            {
+                //현재 좌표가 Empty 일 경우만 검사.
+                if(this._gameBoard[y][x] == -1)
+                {
+                    if(BoardSearch33(x, y) || BoardSearch44(x, y))
+                    {
+                        this._gameBoard[y][x] = -2; // impossible position
+                        Debug.Log("-2 set");
+                    }
+                }
+            }
+        }
+        UpdateGameBoard();
+    }
+
+    bool BoardSearch33(int x, int y)
+    {
+        int sum = 0;
+        
+        for (int i = 0; i < 8; i++) //방향
+        {
+            for(int j = 0; j < 4; j++) //조합 개수
+            {
+                string curPieceLine = "";
+                for(int k = dStart_33[j]; k < dEnd_33[j]; k++)
+                {
+                    int newX = x + (this.dx[i]*k);
+                    int newY = y + (this.dy[i]*k);
+                    if(IsPieceInBoard(newX, newY))
+                    {
+                        curPieceLine += PieceValueToString(newX, newY);
+                    }
+                }
+
+                if(IsPieceLineInList_33(curPieceLine))
+                {
+                    if(++sum >= 2)
+                    {
+                        Debug.Log("33 :" + sum);
+                        return true; 
+                    } 
+                        
+                }
+                curPieceLine = "";
+            }
+        }
+        return false;
+    }
+
+    bool BoardSearch44(int x, int y)
+    {
+        int sum = 0;
+        
+        for (int i = 0; i < 8; i++) //방향
+        {
+            for(int j = 0; j < 5; j++) //조합개수
+            {
+                string curPieceLine = "";
+                for(int k = dStart_44[j]; k < dEnd_44[j]; k++)
+                {
+                    int newX = x + (this.dx[i]*k);
+                    int newY = y + (this.dy[i]*k);
+                    
+                    //해당 좌표 valid 체크
+                    if(IsPieceInBoard(newX, newY))
+                    {
+                        curPieceLine += PieceValueToString(newX, newY);
+                    }
+                }
+
+                if(IsPieceLineInList_44(curPieceLine))
+                {
+                    if(sum++ >= 2) return true;   
+                }
+                curPieceLine = "";
+            }
+        }
+        return false;
+    }
+
+    bool IsPieceInBoard(int x, int y)
+    {
+        if(x < 0 || x > 18 || y < 0 || y > 18)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    string PieceValueToString(int x, int y)
+    {
+        if(this._gameBoard[y][x] == 0)
+        {
+            return "W"; // White
+        }
+        else if(this._gameBoard[y][x] == 1)
+        {
+            return "B"; // Black
+        }
+        else
+        {
+            return "E";  // Empty
+        }
+    }
+
+    bool IsPieceLineInList_33(string pieceLine)
+    {
+        for(int i = 0; i < this.pieceLine_33.Length; i++)
+        {
+            if(this.pieceLine_33[i] == pieceLine)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool IsPieceLineInList_44(string pieceLine)
+    {
+        for(int i = 0; i < this.pieceLine_44.Length; i++)
+        {
+            if(this.pieceLine_44[i] == pieceLine)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void UpdateGameBoard()
+    {
+        GameManager.instance.gameBoard = this._gameBoard;
+    }
+#endregion
 }
