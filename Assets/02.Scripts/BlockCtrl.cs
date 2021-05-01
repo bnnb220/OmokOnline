@@ -13,9 +13,27 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public int id;
 
+    public int x;
+    public int y;
+
+    private bool isForbidden;
+
+    private Color originColor;
+    // Start is called before the first frame update
+    void Start()
+    {
+        image = GetComponent<Image>();
+        GetComponent<Button>().onClick.AddListener(() => OnBlockClick());
+
+        x = id % 19;
+        y = (int)Mathf.Floor(id / 19);
+
+        originColor = image.color;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if(GameManager.instance.isMyTurn)
+        if(PosValidCheck())
         {
             image.color = new Color(image.color.r, image.color.g, image.color.b, 0.5f);
         }
@@ -23,23 +41,42 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
 
     public void OnPointerExit(PointerEventData eventData)
     {   
-        if(GameManager.instance.isMyTurn)
+        if(PosValidCheck())
         {
             image.color = new Color(image.color.r, image.color.g, image.color.b, 0.0f);
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    bool PosValidCheck()
     {
-        image = GetComponent<Image>();
-        GetComponent<Button>().onClick.AddListener(() => OnBlockClick());
+        if(GameManager.instance.gameBoard[this.y][this.x] == -2)
+        {
+            return false;
+        }
+        if(!GameManager.instance.isMyTurn)
+        {
+            return false;
+        }
+        return true;
     }
-
     
+    public void ForbiddenEvent(bool isForbidden)
+    {
+        if(isForbidden)
+        {
+            Sprite img = Resources.Load<Sprite>("RedPiece");
+            this.image.sprite = img;
+            this.image.color = Color.white;
+        }
+        else
+        {
+            this.image.sprite = null;
+            this.image.color = this.originColor;
+        }
+    }
     void OnBlockClick()
     {
-        if(GameManager.instance.isMyTurn)
+        if(PosValidCheck())
         {   
             PutPiece(GameManager.instance.myColor, true);
             BoardCtrl.instance.BlockClicked(id);
@@ -83,9 +120,6 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             Debug.Log("ERROR");
         }
-        int x = id % 19;
-        int y = (int)Mathf.Floor(id / 19);
-
-        GameManager.instance.gameBoard[y][x] = colorNum;
+        GameManager.instance.gameBoard[this.y][this.x] = colorNum;
     }
 }

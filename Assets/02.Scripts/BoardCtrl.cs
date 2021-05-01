@@ -305,9 +305,9 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     private int[] dStart_44 = new int[5] {-4, -2, -3, -4, -3};
     private int[] dEnd_44 = new int[5] {0, 2, 1, 0, 1};
 
-    private string[] pieceLine_33 = new string[4] {"EBEBE", "EEBBE", "EBBEEE", "EBEEBE"};
+    private string[] pieceLine_33 = new string[4] {"EB@BE", "E@BBE", "EBBE@E", "EBE@BE"};
 
-    private string[] pieceLine_44 = new string[5] {"EBBBE", "EBEBB", "EBBEB", "BBBEE", "BBEEB"};
+    private string[] pieceLine_44 = new string[5] {"EBBB@", "EB@BB", "EBB@B", "BBBE@", "BBE@B"};
 
     private int[][] boardCache33 = new int[19][];
 
@@ -333,13 +333,18 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         {
             for (int x = 0; x < 19; x++)
             {
-                //현재 좌표가 Empty 일 경우만 검사.
-                if(this._gameBoard[y][x] == -1)
+                //현재 좌표가 Empty or ImposBlock 일 경우만 검사.
+                if(this._gameBoard[y][x] < 0)
                 {
                     if(BoardSearch33(x, y) || BoardSearch44(x, y))
                     {
                         this._gameBoard[y][x] = -2; // impossible position
-                        Debug.Log("-2 set");
+                        this.blocks[PosToId(x,y)].GetComponent<BlockCtrl>().ForbiddenEvent(true);
+                    }
+                    else
+                    {
+                        this._gameBoard[y][x] = -1; // 만약 보드가 update되어 더이상 ImposBlock이 아닐 경우 empty로 변경.
+                        this.blocks[PosToId(x,y)].GetComponent<BlockCtrl>().ForbiddenEvent(false);
                     }
                 }
             }
@@ -351,29 +356,47 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     {
         int sum = 0;
         
+        int skipNum = -1;
+
         for (int i = 0; i < 8; i++) //방향
         {
+            if(i == skipNum)
+            {
+                continue;
+            }
             for(int j = 0; j < 4; j++) //조합 개수
             {
                 string curPieceLine = "";
-                for(int k = dStart_33[j]; k < dEnd_33[j]; k++)
+                for(int k = dStart_33[j]; k <= dEnd_33[j]; k++)
                 {
                     int newX = x + (this.dx[i]*k);
                     int newY = y + (this.dy[i]*k);
                     if(IsPieceInBoard(newX, newY))
                     {
-                        curPieceLine += PieceValueToString(newX, newY);
+                        if(newX == x && newY == y)
+                        {
+                            curPieceLine += "@";
+                        }
+                        else{
+                            curPieceLine += PieceValueToString(newX, newY);
+                        }
                     }
                 }
 
                 if(IsPieceLineInList_33(curPieceLine))
                 {
+                    // 만약 조합이 OX@XO 이면 반대 방향도 같은 위치에 동일하게 체크되기 때문에 반대 방향 스킵.
+                    if(j == 0)
+                    {
+                        skipNum = i + 4;
+                    }
+                    Debug.Log($"x: {x} y: {y} // {curPieceLine}");
                     if(++sum >= 2)
                     {
-                        Debug.Log("33 :" + sum);
                         return true; 
-                    } 
-                        
+                    }
+                    curPieceLine = "";
+                    break; 
                 }
                 curPieceLine = "";
             }
@@ -390,7 +413,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             for(int j = 0; j < 5; j++) //조합개수
             {
                 string curPieceLine = "";
-                for(int k = dStart_44[j]; k < dEnd_44[j]; k++)
+                for(int k = dStart_44[j]; k <= dEnd_44[j]; k++)
                 {
                     int newX = x + (this.dx[i]*k);
                     int newY = y + (this.dy[i]*k);
@@ -464,6 +487,11 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     void UpdateGameBoard()
     {
         GameManager.instance.gameBoard = this._gameBoard;
+    }
+
+    int PosToId(int x, int y)
+    {
+        return (y * 19) + x;
     }
 #endregion
 }
