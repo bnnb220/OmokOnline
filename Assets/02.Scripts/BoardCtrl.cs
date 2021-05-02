@@ -298,14 +298,14 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     private int[] dy = new int[8] {0,-1,-1,-1, 0, 1,1,1};
 
     // [3X3] : OX@XO, O@XXO, OXXO@O, OXO@XO
-    private int[] dStart_33 = new int[4] {-2, -1, -4, -3};
-    private int[] dEnd_33 = new int[4] {2, 3, 1, 2};
+    private int[] dStart_33 = new int[5] {-2, -1, -4, -3, -1};
+    private int[] dEnd_33 = new int[5] {2, 3, 1, 2, 4};
 
     // [4X4] : OXXX@, OX@XX, OXX@X, XXXO@, XXO@X
     private int[] dStart_44 = new int[5] {-4, -2, -3, -4, -3};
     private int[] dEnd_44 = new int[5] {0, 2, 1, 0, 1};
 
-    private string[] pieceLine_33 = new string[4] {"EB@BE", "E@BBE", "EBBE@E", "EBE@BE"};
+    private string[] pieceLine_33 = new string[5] {"EB@BE", "E@BBE", "EBBE@E", "EBE@BE", "E@BEBE"};
 
     private string[] pieceLine_44 = new string[5] {"EBBB@", "EB@BB", "EBB@B", "BBBE@", "BBE@B"};
 
@@ -364,7 +364,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 continue;
             }
-            for(int j = 0; j < 4; j++) //조합 개수
+            for(int j = 0; j < pieceLine_33.Length; j++) //조합 개수
             {
                 string curPieceLine = "";
                 for(int k = dStart_33[j]; k <= dEnd_33[j]; k++)
@@ -373,7 +373,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                     int newY = y + (this.dy[i]*k);
                     if(IsPieceInBoard(newX, newY))
                     {
-                        if(newX == x && newY == y)
+                        if(k == 0)
                         {
                             curPieceLine += "@";
                         }
