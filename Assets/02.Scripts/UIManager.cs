@@ -10,14 +10,21 @@ public class UIManager : MonoBehaviourPunCallbacks
     public GameObject masterClient;
     public GameObject client;
 
+    public Button restartButton;
+
     private PhotonView pv;
+
+    public static UIManager instance;
     // Start is called before the first frame update
     void Awake()
     {
+        instance = this;
         pv = photonView;
     }
     void Start()
     {
+        restartButton.GetComponent<Image>().color = Color.gray;
+
         pv.RPC("SetPlayersInfo", RpcTarget.OthersBuffered, PhotonNetwork.NickName);
     }
 
@@ -46,5 +53,25 @@ public class UIManager : MonoBehaviourPunCallbacks
             masterText.text = otherName;
             otherText.text = PhotonNetwork.NickName;
         }
+    }
+    
+    public void OnExitButtonClick()    
+    {
+
+    }
+
+    public void OnRestartButtonClick()
+    {
+        if(GameManager.instance.isGameEnd)
+        {
+            pv.RPC("Restart", RpcTarget.All);
+        }
+    }
+
+    [PunRPC]
+    void Restart()
+    {
+        restartButton.GetComponent<Image>().color = Color.gray;
+        GameManager.instance.GameRestart();
     }
 }

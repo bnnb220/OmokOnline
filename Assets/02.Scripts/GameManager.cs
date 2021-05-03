@@ -4,12 +4,14 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager instance;
-    public bool isWin;
+    public bool isGameEnd;
     public bool isMyTurn;
+    public string winColor;
     public string myColor;
     public string oppoColor;
     public int colorNum;
@@ -81,5 +83,35 @@ public class GameManager : MonoBehaviourPunCallbacks
         }
 
         Debug.Log(board);
+    }
+
+    public void GameEnd(int[] pieceIds)
+    {
+        pv.RPC("ShowWinPieces", RpcTarget.All, GameManager.instance.myColor, pieceIds);
+
+        
+    }
+
+    public void GameRestart()
+    {
+        Debug.Log("Game restart");
+        this.isGameEnd = false;
+        winColor = null;
+        CreateBoardArray();
+        ColorSetting();
+        BoardCtrl.instance.BlocksReset();
+    }
+
+    [PunRPC]
+    void ShowWinPieces(string color, int[] ids)
+    {
+        UIManager.instance.restartButton.GetComponent<Image>().color = Color.white;
+        for (int i = 0; i < ids.Length; i++)
+        {
+            this.isGameEnd = true;
+            this.isMyTurn = false;
+            this.winColor = color;
+            BoardCtrl.instance.blocks[ids[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
+        }
     }
 }

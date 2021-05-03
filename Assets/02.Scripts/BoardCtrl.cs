@@ -20,7 +20,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     private PhotonView pv;
 
-    private GameObject[] blocks = new GameObject[361];
+    public GameObject[] blocks = new GameObject[361];
 
     private int[] pieceIds;
     // Start is called before the first frame update
@@ -32,11 +32,11 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        BoardSetting();
+        BlocksSetting();
     }
 
 
-    void BoardSetting()
+    void BlocksSetting()
     {
         GameObject newBlock;
         for (int i = 0; i < 361; i++)
@@ -48,11 +48,22 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         }
     }
 
+    public void BlocksReset()
+    {
+        foreach (GameObject block in blocks)
+        {
+            block.GetComponent<BlockCtrl>().BlockReset();
+        }
+    }
+
     public void BlockClicked(int blockId)
     {
         pv.RPC("PutPiece", RpcTarget.Others, blockId);
         CurrBoardCheck();
     }
+
+
+#region PUNRPC
 
     [PunRPC]
     void PutPiece(int blockId)
@@ -60,21 +71,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         blocks[blockId].GetComponent<BlockCtrl>().PutPiece(GameManager.instance.oppoColor, false);
     }
 
-    void WinEvent()
-    {
-        GameManager.instance.isWin = true;
-
-        pv.RPC("ShowWinPieces", RpcTarget.All, GameManager.instance.myColor, pieceIds);
-    }
-
-    [PunRPC]
-    void ShowWinPieces(string color, int[] ids)
-    {
-        for (int i = 0; i < ids.Length; i++)
-        {
-            blocks[ids[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
-        }
-    }
+#endregion
 
 #region GAME_END_CHECK
 
@@ -86,11 +83,12 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
         if(HorizontalCheck() || VerticalCheck() || LSlashCheck() || RSlashCheck())
         {
-            WinEvent();
+            GameManager.instance.GameEnd(pieceIds);
+            this.isGameOver = false;
         }
         else
         {
-            ImpossiblePositionCheck();
+            pv.RPC("ForbiddenPosSearch", RpcTarget.All);
         }
     }
 
@@ -259,10 +257,11 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             int tempI = i;
             for(int j = 18; j >= offset; j--)
             {
-                if(_gameBoard[j][i++] == _colorNum)
+                if(_gameBoard[j][i] == _colorNum)
                 {
                     pieceIds[numOfPiece] = GetPos(i, j);
                     numOfPiece++;
+                    i++;
                 }
                 else
                 {
@@ -325,8 +324,14 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
         }
     }
 
-    void ImpossiblePositionCheck()
+    [PunRPC]
+    void ForbiddenPosSearch()
     {
+        if(GameManager.instance.myColor != "Black")
+        {
+            return;
+        }
+
         ResetBoardCache();
 
         for (int y = 0; y < 19; y++)

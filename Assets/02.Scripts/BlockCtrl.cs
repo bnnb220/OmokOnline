@@ -122,4 +122,11 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
         GameManager.instance.gameBoard[this.y][this.x] = colorNum;
     }
+
+    public void BlockReset()
+    {
+        ForbiddenEvent(false);
+        GetComponent<BlockCtrl>().enabled = true;
+        GetComponent<Button>().enabled = true;
+    }
 }
