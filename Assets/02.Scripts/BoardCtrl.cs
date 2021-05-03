@@ -273,7 +273,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                     isGameOver = true;
                     return true;
                 }
-                
+
                 i++;
             }
             i = tempI;
@@ -302,12 +302,12 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     private int[] dEnd_33 = new int[5] {2, 3, 1, 2, 4};
 
     // [4X4] : OXXX@, OX@XX, OXX@X, XXXO@, XXO@X
-    private int[] dStart_44 = new int[5] {-4, -2, -3, -4, -3};
-    private int[] dEnd_44 = new int[5] {0, 2, 1, 0, 1};
+    private int[] dStart_44 = new int[5] {-3, -2, -4, -2, -3};
+    private int[] dEnd_44 = new int[5] {2, 3, 0, 2, 1};
 
     private string[] pieceLine_33 = new string[5] {"EB@BE", "E@BBE", "EBBE@E", "EBE@BE", "E@BEBE"};
 
-    private string[] pieceLine_44 = new string[5] {"EBBB@", "EB@BB", "EBB@B", "BBBE@", "BBE@B"};
+    private string[] pieceLine_44 = new string[8] {"EBB@BE","EB@BBE", "EBBB@", "EB@BB", "EBB@B", "BBBE@", "BBE@B", "BEB@B"};
 
     private int[][] boardCache33 = new int[19][];
 
@@ -370,7 +370,7 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             {
                 continue;
             }
-            for(int j = 0; j < pieceLine_33.Length; j++) //조합 개수
+            for(int j = 0; j < dStart_33.Length; j++) //조합 개수
             {
                 string curPieceLine = "";
                 for(int k = dStart_33[j]; k <= dEnd_33[j]; k++)
@@ -391,17 +391,26 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
                 if(IsPieceLineInList_33(curPieceLine))
                 {
+                    Debug.Log( $"x: {x}, y : {y} {curPieceLine} / j: {j}");
                     // 만약 조합이 OX@XO 이면 반대 방향도 같은 위치에 동일하게 체크되기 때문에 반대 방향 스킵.
+                    curPieceLine = "";
                     if(j == 0)
                     {
+                        string l = (PieceValueToString(x + (this.dx[i]*3), y + (this.dy[i]*3)));
+                        string r = (PieceValueToString(x - (this.dx[i]*3), y - (this.dy[i]*3)));
+
+                        if(l == "B" || r == "B")
+                        {
+                            Debug.Log("0x0x0  checekd");
+                            break;
+                        }   
                         skipNum = i + 4;
                     }
-                    Debug.Log($"x: {x} y: {y} // {curPieceLine}");
                     if(++sum >= 2)
                     {
+                        Debug.Log("33 ");
                         return true; 
                     }
-                    curPieceLine = "";
                     break; 
                 }
                 curPieceLine = "";
@@ -414,9 +423,14 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
     {
         int sum = 0;
         
+        int skipNum = -1;
         for (int i = 0; i < 8; i++) //방향
         {
-            for(int j = 0; j < 5; j++) //조합개수
+            if(i == skipNum)
+            {
+                continue;
+            }
+            for(int j = 0; j < dStart_44.Length; j++) //조합개수
             {
                 string curPieceLine = "";
                 for(int k = dStart_44[j]; k <= dEnd_44[j]; k++)
@@ -427,13 +441,26 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
                     //해당 좌표 valid 체크
                     if(IsPieceInBoard(newX, newY))
                     {
-                        curPieceLine += PieceValueToString(newX, newY);
+                        if(k == 0)
+                        {
+                            curPieceLine += "@";
+                        }
+                        else
+                        {
+                            curPieceLine += PieceValueToString(newX, newY);
+                        }
                     }
                 }
 
                 if(IsPieceLineInList_44(curPieceLine))
                 {
-                    if(sum++ >= 2) return true;   
+                    if(j <= 1)
+                    {
+                        skipNum = i + 4;
+                    }
+                    if(++sum >= 2) return true;   
+                    curPieceLine = "";
+                    break; 
                 }
                 curPieceLine = "";
             }
@@ -452,6 +479,10 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
 
     string PieceValueToString(int x, int y)
     {
+        if(!IsPieceInBoard(x,y))
+        {
+            return "F";
+        }
         if(this._gameBoard[y][x] == 0)
         {
             return "W"; // White
