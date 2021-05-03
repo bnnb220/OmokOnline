@@ -7,6 +7,7 @@ using TMPro;
 
 public class PhotonManager : MonoBehaviourPunCallbacks
 {
+
     private readonly string gameVersion = "v1.0";
     private string userId = "Yongjung";
 
@@ -20,23 +21,39 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     private Dictionary<string, GameObject> roomDict = new Dictionary<string, GameObject>();
 
+
+    public bool readyToJoin;
+    
+
+    public static PhotonManager instance;
+
     void Awake()
     {
+        instance = this;
+
         PhotonNetwork.AutomaticallySyncScene = true;
 
         PhotonNetwork.GameVersion = gameVersion;
 
         PhotonNetwork.NickName = userId;
 
+       // PhotonNetwork.Disconnect();
+
         PhotonNetwork.ConnectUsingSettings();
+
+        
+
+        Debug.Log("Awake");
     }
     // Start is called before the first frame update
+
+    
     void Start()
     {
         userId = PlayerPrefs.GetString("userId", $"USER_{Random.Range(0, 100):00}");
         userIdText.text = userId;
         PhotonNetwork.NickName = userId;
-        
+
     }
 
     public override void OnConnectedToMaster()
@@ -49,8 +66,8 @@ public class PhotonManager : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         Debug.Log("2. connected to Lobby");
-
-        //PhotonNetwork.JoinRandomRoom();
+        
+        readyToJoin = true;
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
@@ -112,7 +129,12 @@ public class PhotonManager : MonoBehaviourPunCallbacks
 
     public void OnRoomCreateBtnClk()
     {
+        if(!readyToJoin)
+        {
+            return;
+        }
         PlayerPrefs.SetString("userId", this.userIdText.text);
+        PhotonNetwork.NickName = this.userIdText.text;
 
         RoomOptions ro = new RoomOptions();
         ro.IsOpen = true;

@@ -5,10 +5,12 @@ using Photon.Pun;
 using Photon.Realtime;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviourPunCallbacks
 {
     public static GameManager instance;
+    public bool isOtherPlayerOn;
     public bool isGameEnd;
     public bool isMyTurn;
     public string winColor;
@@ -22,6 +24,10 @@ public class GameManager : MonoBehaviourPunCallbacks
 
     public GameObject[] blocks;
 
+
+    public TMP_Text chatList;
+    public TMP_InputField chatInput;
+
     void Awake()
     {
         instance = this;
@@ -32,9 +38,19 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         CreateBoardArray();
         ColorSetting();
+        if(!PhotonNetwork.IsMasterClient)
+        {
+            isOtherPlayerOn = true;
+        }
     }   
 
-
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Return) && chatInput.text != "")
+        {
+            EnterChatInput();
+        }
+    }
     void CreateBoardArray()
     {
         gameBoard = new int[19][];
@@ -89,7 +105,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         pv.RPC("ShowWinPieces", RpcTarget.All, GameManager.instance.myColor, pieceIds);
 
-        
     }
 
     public void GameRestart()
@@ -113,5 +128,42 @@ public class GameManager : MonoBehaviourPunCallbacks
             this.winColor = color;
             BoardCtrl.instance.blocks[ids[i]].GetComponent<Image>().sprite = Resources.Load<Sprite>($"{color}Lined");
         }
+    }
+
+    public void OnExitClick()
+    {
+        PhotonNetwork.LeaveRoom(); // clean up 작업 시작.
+    }
+
+    //clean up 끝난 후 호출.
+    public override void OnLeftRoom()
+    {
+        SceneManager.LoadScene("Lobby");
+    }
+    
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        this.isOtherPlayerOn = false;
+        UIManager.instance.OtherPlayerExit();
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        this.isOtherPlayerOn = true;
+    }
+
+
+    void EnterChatInput()
+    {
+        string str = $"[{PhotonNetwork.NickName}] : {this.chatInput.text} \n";
+        this.chatInput.text = "";
+
+        pv.RPC("SendText", RpcTarget.All, str);
+    }
+
+    [PunRPC]
+    void SendText(string str)
+    {
+        this.chatList.text += str;
     }
 }

@@ -9,8 +9,10 @@ public class RoomData : MonoBehaviour
 {
     public TMP_Text roomInfoText;
     public RoomInfo _roomInfo;
+    private bool readyToJoin;
 
     public RoomInfo RoomInfo
+
     {
         get
         {
@@ -28,6 +30,9 @@ public class RoomData : MonoBehaviour
 
     void OnEnterRoom(string roomName) 
     {
-        PhotonNetwork.JoinRoom(roomName);
+        if(PhotonManager.instance.readyToJoin)
+        {
+            PhotonNetwork.JoinRoom(roomName);
+        }
     }
 }

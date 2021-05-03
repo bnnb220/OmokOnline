@@ -57,6 +57,10 @@ public class BlockCtrl : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         {
             return false;
         }
+        if(!GameManager.instance.isOtherPlayerOn)
+        {
+            return false;
+        }
         return true;
     }
     

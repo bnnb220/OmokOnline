@@ -257,23 +257,24 @@ public class BoardCtrl : MonoBehaviourPunCallbacks
             int tempI = i;
             for(int j = 18; j >= offset; j--)
             {
+
                 if(_gameBoard[j][i] == _colorNum)
                 {
                     pieceIds[numOfPiece] = GetPos(i, j);
-                    numOfPiece++;
-                    i++;
+                    numOfPiece++;    
                 }
                 else
                 {
                     pieceIds = new int[] {-1,-1,-1,-1,-1};
                     numOfPiece = 0;
                 }
-                
                 if(numOfPiece >= 5)
                 {
                     isGameOver = true;
                     return true;
                 }
+                
+                i++;
             }
             i = tempI;
             offset++;

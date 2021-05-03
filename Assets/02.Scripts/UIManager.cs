@@ -10,6 +10,11 @@ public class UIManager : MonoBehaviourPunCallbacks
     public GameObject masterClient;
     public GameObject client;
 
+    public Image masterImage;
+    public Image otherImage;
+    public TMP_Text masterText;
+    public TMP_Text otherText;
+
     public Button restartButton;
 
     private PhotonView pv;
@@ -23,41 +28,44 @@ public class UIManager : MonoBehaviourPunCallbacks
     }
     void Start()
     {
-        restartButton.GetComponent<Image>().color = Color.gray;
+        otherImage = client.transform.GetChild(0).gameObject.GetComponent<Image>();
+        otherText = client.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
+        masterImage = masterClient.transform.GetChild(0).gameObject.GetComponent<Image>();
+        masterText = masterClient.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
 
-        pv.RPC("SetPlayersInfo", RpcTarget.OthersBuffered, PhotonNetwork.NickName);
+        restartButton.GetComponent<Image>().color = Color.gray;
+        InfoSetting();
     }
 
 
     [PunRPC]
     void SetPlayersInfo(string otherName)
     {
-        Image masterImage = masterClient.transform.GetChild(0).gameObject.GetComponent<Image>();
-        Image otherImage = client.transform.GetChild(0).gameObject.GetComponent<Image>();
-        TMP_Text masterText = masterClient.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
-        TMP_Text otherText = client.transform.GetChild(1).gameObject.GetComponent<TMP_Text>();
-
-        if(PhotonNetwork.IsMasterClient)
-        {
-            masterImage.sprite = Resources.Load<Sprite>(GameManager.instance.myColor);
-            otherImage.sprite = Resources.Load<Sprite>(GameManager.instance.oppoColor);
-
-            masterText.text =  PhotonNetwork.NickName;
-            otherText.text = otherName;
-        }
-        else
-        {
-            masterImage.sprite = Resources.Load<Sprite>(GameManager.instance.oppoColor); 
-            otherImage.sprite = Resources.Load<Sprite>(GameManager.instance.myColor);
-
-            masterText.text = otherName;
-            otherText.text = PhotonNetwork.NickName;
-        }
+        otherImage.sprite = Resources.Load<Sprite>(GameManager.instance.oppoColor);
+        otherImage.color = Color.white;
+        otherText.text = otherName;
     }
-    
-    public void OnExitButtonClick()    
-    {
 
+    void MyInfo()
+    {
+        masterImage.sprite = Resources.Load<Sprite>(GameManager.instance.myColor);
+        masterImage.color = Color.white;
+        masterText.text = PhotonNetwork.NickName;
+    }
+
+    void InfoSetting()
+    {
+        MyInfo();
+        pv.RPC("SetPlayersInfo", RpcTarget.OthersBuffered, PhotonNetwork.NickName);
+    }
+
+    public void OtherPlayerExit()
+    {
+        otherImage.sprite = null;
+        otherImage.color = new Color(0,0,0,0);
+        otherText.text = "";
+        Restart();
+        MyInfo();
     }
 
     public void OnRestartButtonClick()
