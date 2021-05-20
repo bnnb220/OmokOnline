@@ -10,7 +10,7 @@ Photon Network를 활용한 온라인 오목 게임입니다.
 
 **Lobby Scene**
 
-![Omoke Lobby](C:\Github\Unity\OmokOnline\Images\1.png)
+![Omoke Lobby](.\Images\1.png)
 
 
 
@@ -18,4 +18,4 @@ Photon Network를 활용한 온라인 오목 게임입니다.
 
 **Game Scene**
 
-![5](C:\Github\Unity\OmokOnline\Images\5.png)
+![5](.\Images\5.png)
