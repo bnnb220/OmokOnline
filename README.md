@@ -10,7 +10,7 @@ Photon Network를 활용한 온라인 오목 게임입니다.
 
 **Lobby Scene**
 
-![Omoke Lobby](.\Images\1.png)
+![Omoke Lobby](https://media.githubusercontent.com/media/bnnb220/OmokOnline/master/Images/1.png)
 
 
 
