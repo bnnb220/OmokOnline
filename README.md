@@ -18,4 +18,4 @@ Photon Network를 활용한 온라인 오목 게임입니다.
 
 **Game Scene**
 
-![5](.\Images\5.png)
+![5](https://media.githubusercontent.com/media/bnnb220/OmokOnline/master/Images/5.png)
